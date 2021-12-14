@@ -39,3 +39,37 @@ MyToDo.webdb.getAllTodoItems = function(renderFunc) {
     tx.executeSql("SELECT * FROM todo", [], renderFunc, MyToDo.webdb.onError);
   });
 }
+
+function loadTodoItems(tx, rs){
+  var rowOutput = "";
+  var todoItems = document.getElementById("todoItems");
+  for(var i=0; i < rs.rows.length; i++){
+    rowOutput += renderTodo(rs.rows.item(i));
+  }
+
+  todoItems.innerHTML = rowOutput;
+}
+
+function renderTodo(row) {
+  return "<li>" + row.todo + " [<a href='javascript:void(0);' onclick=\'MyToDo.webdb.deleteTodo(" + row.ID + ");\'>Delete</a>]</li>";
+}
+
+MyToDo.webdb.deleteTodo = function(id) {
+  var db = MyToDo.webdb.db;
+  db.transaction(function(tx){
+    tx.executeSql("DELETE FROM todo WHERE ID=?", [id], MyToDo.webdb.onSuccess,
+    MyToDo.webdb.onError);
+  });
+}
+
+function init(){
+  MyToDo.webdb.open();
+  MyToDo.webdb.createTable();
+
+  MyToDo.webdb.getAllTodoItems(loadTodoItems);
+}
+function addTodo(){
+  var todo = document.getElementById("todo");
+  MyToDo.webdb.addTodo(todo.value);
+  todo.value = "";
+}
